@@ -19,8 +19,21 @@ zend_module_entry netv6_module_entry = {
 ZEND_GET_MODULE(netv6)
 #endif
 
+PHP_METHOD(NetV6, getHostByName)
+{
+    
+}
+
+zend_function_entry php_netv6_methods[] = {
+    PHP_ME(NetV6, getHostByName, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC);
+};
+
 PHP_MINIT_FUNCTION(netv6)
 {
+    zend_class_entry ce;
+    INIT_CLASS_ENTRY(ce, "NetV6", php_netv6_methods);
+    zend_register_internal_clas(&ce TSRMLS_CC);
+
     return SUCCESS;
 }
 
