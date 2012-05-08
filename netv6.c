@@ -1,5 +1,7 @@
 #include "php_netv6.h"
 
+zend_class_entry *php_netv6_sc_entry;
+
 PHP_METHOD(NetV6, getHostByName)
 {
     
@@ -10,11 +12,27 @@ zend_function_entry php_netv6_methods[] = {
     {NULL, NULL, NULL}
 };
 
+void php_netv6_register_constants(zend_class_entry *ce)
+{
+    zval *constval;
+    
+    constval = pemalloc(sizeof(zval), 1);
+    INIT_PZVAL(constval);
+    ZVAL_LONG(constval, 1);
+    zend_hash_add(&ce->constants_table, "IPV4", sizeof("IPV4"), (void*)&constval, sizeof(zval*), NULL);
+
+    constval = pemalloc(sizeof(zval), 1);
+    INIT_PZVAL(constval);
+    ZVAL_LONG(constval, 2);
+    zend_hash_add(&ce->constants_table, "IPV6", sizeof("IPV6"), (void*)&constval, sizeof(zval*), NULL);
+}
+
 PHP_MINIT_FUNCTION(netv6)
 {
     zend_class_entry ce;
     INIT_CLASS_ENTRY(ce, "NetV6", php_netv6_methods);
-    zend_register_internal_class(&ce TSRMLS_CC);
+    php_netv6_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
+    php_netv6_register_constants(php_netv6_sc_entry);
 
     return SUCCESS;
 }
