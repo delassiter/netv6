@@ -4,12 +4,12 @@ zend_module_entry netv6_module_entry = {
   STANDARD_MODULE_HEADER,
 #endif
   PHP_NETV6_EXTNAME,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  NULL, /* Functions */
+  PHP_MINIT(netv6), /* MINIT */
+  NULL, /* MSHUTDOWN */
+  NULL, /* RINIT */
+  NULL, /* RSHUTDOWN */
+  NULL, /* MINFO */
 #if ZEND_MODULE_API_NO >= 20010901
   PHP_NETV6_EXTVER,
 #endif
@@ -18,3 +18,9 @@ zend_module_entry netv6_module_entry = {
 #ifdef COMPILE_DL_NETV6
 ZEND_GET_MODULE(netv6)
 #endif
+
+PHP_MINIT_FUNCTION(netv6)
+{
+    return SUCCESS;
+}
+
