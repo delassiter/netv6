@@ -1,12 +1,16 @@
 #include "php_netv6.h"
 
+static
+    ZEND_BEGIN_ARG_INFO EX(php_netv6_two_args, 0, 0, 2)
+    ZEND_END_ARG_INFO()
+
 PHP_METHOD(NetV6, getHostByName)
 {
     
 }
 
 zend_function_entry php_netv6_methods[] = {
-    PHP_ME(NetV6, getHostByName, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(NetV6, getHostByName, php_netv6_two_args, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     {NULL, NULL, NULL}
 };
 
