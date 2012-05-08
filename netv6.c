@@ -9,7 +9,7 @@ zend_module_entry netv6_module_entry = {
   NULL, /* MSHUTDOWN */
   NULL, /* RINIT */
   NULL, /* RSHUTDOWN */
-  NULL, /* MINFO */
+  PHP_MINFO(netv6), /* MINFO */
 #if ZEND_MODULE_API_NO >= 20010901
   PHP_NETV6_EXTVER,
 #endif
@@ -24,3 +24,10 @@ PHP_MINIT_FUNCTION(netv6)
     return SUCCESS;
 }
 
+PHP_MINFO_FUNCTION(netv6)
+{
+    php_info_print_table_start();
+    php_info_print_table_row(2, "NetV6 Module", "enabled");
+    php_info_print_table_row(2, "version", PHP_NETV6_EXTVER);
+    php_info_print_table_end();
+}
