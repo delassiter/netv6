@@ -14,7 +14,7 @@ PHP_MINIT_FUNCTION(netv6)
 {
     zend_class_entry ce;
     INIT_CLASS_ENTRY(ce, "NetV6", php_netv6_methods);
-    zend_register_internal_clas(&ce TSRMLS_CC);
+    zend_register_internal_class(&ce TSRMLS_CC);
 
     return SUCCESS;
 }
