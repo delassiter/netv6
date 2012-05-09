@@ -4,29 +4,69 @@ zend_class_entry *php_netv6_sc_entry;
 
 PHP_METHOD(NetV6, getHostByName)
 {
-    struct addrinfo hints, *result;
+    const char * hostname = NULL;
+    struct addrinfo *result;
+    int hostname_len = 0;
+    int type;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &hostname, &hostname_len, &type) == FAILURE) {
+        return;
+    }
+
     int error;
-    struct sockaddr_in6* saddr;
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET6;
-    hints.ai_socktype = SOCK_STREAM;
-
-    error = getaddrinfo("ipv6.google.com", NULL, NULL, &result);
+    error = getIpByName(hostname, type, &result);
     if (error) {
         php_printf("Hello");
     }
 
     // Error handling
     char ip[INET6_ADDRSTRLEN];
-    void *addr;
-
-    saddr = (struct socketaddr_in6 *)result->ai_addr;
-    addr = &(saddr->sin6_addr);
-    inet_ntop(result->ai_family, addr, ip, sizeof ip);
-    php_printf("ai_addr hostname ->  %s\n", ip);
-
+    getIpAsString(result, type, &ip);
     freeaddrinfo(result);
+
+    RETVAL_STRING(ip, 1);
+    return;
+}
+
+int getIpByName(const char *hostname, long type, struct addrinfo **res)
+{
+    int error;
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof hints);
+    if (type == 2) {
+        hints.ai_family = AF_INET6;
+    } else {
+        hints.ai_family = AF_INET;
+    }
+    hints.ai_socktype = SOCK_STREAM;
+
+    error = getaddrinfo(hostname, NULL, NULL, res);
+    if (error) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int getIpAsString(struct addrinfo *res, long type, char *dest)
+{
+    char ip[INET6_ADDRSTRLEN];
+    if (type == 2) {
+        struct sockaddr_in6* saddr;
+        void *addr;
+        saddr = (struct socketaddr_in6 *)res->ai_addr;
+        addr = &(saddr->sin6_addr);
+        inet_ntop(res->ai_family, addr, ip, sizeof ip);
+    } else {
+        struct sockaddr_in* saddr;
+        void *addr;
+        saddr = (struct socketaddr_in *)res->ai_addr;
+        addr = &(saddr->sin_addr);
+        inet_ntop(res->ai_family, addr, ip, sizeof ip);
+    }
+    strcpy(dest, ip);
+    return 0;
 }
 
 PHP_METHOD(NetV6, getHostByNameL)
