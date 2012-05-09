@@ -9,3 +9,6 @@
 extern zend_module_entry netv6_module_entry;
 #define phpext_netv6_ptr &netv6_module_entry
 #endif
+
+#include <sys/socket.h>
+#include <netdb.h>

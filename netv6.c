@@ -4,11 +4,39 @@ zend_class_entry *php_netv6_sc_entry;
 
 PHP_METHOD(NetV6, getHostByName)
 {
-    
+    struct addrinfo hints, *result;
+    int error;
+    struct sockaddr_in6* saddr;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET6;
+    hints.ai_socktype = SOCK_STREAM;
+
+    error = getaddrinfo("ipv6.google.com", NULL, NULL, &result);
+    if (error) {
+        php_printf("Hello");
+    }
+
+    // Error handling
+    char ip[INET6_ADDRSTRLEN];
+    void *addr;
+
+    saddr = (struct socketaddr_in6 *)result->ai_addr;
+    addr = &(saddr->sin6_addr);
+    inet_ntop(result->ai_family, addr, ip, sizeof ip);
+    php_printf("ai_addr hostname ->  %s\n", ip);
+
+    freeaddrinfo(result);
+}
+
+PHP_METHOD(NetV6, getHostByNameL)
+{
+
 }
 
 zend_function_entry php_netv6_methods[] = {
     PHP_ME(NetV6, getHostByName, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+    PHP_ME(NetV6, getHostByNameL, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
     {NULL, NULL, NULL}
 };
 
