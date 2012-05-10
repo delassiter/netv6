@@ -1,5 +1,6 @@
 #include "php_netv6.h"
 #include "netv6_exception.h"
+#include "netv6_lookup.h"
 
 zend_class_entry *php_netv6_sc_entry;
 zend_class_entry *php_netv6_exception_class_entry;
@@ -33,46 +34,38 @@ PHP_METHOD(NetV6, getHostByName)
     return;
 }
 
-int getIpByName(const char *hostname, long type, struct addrinfo **res)
-{
-    int error;
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof hints);
-    if (type == 2) {
-        hints.ai_family = AF_INET6;
-    } else {
-        hints.ai_family = AF_INET;
-    }
-    hints.ai_socktype = SOCK_STREAM;
-
-    error = getaddrinfo(hostname, NULL, &hints, res);
-
-    return error;
-}
-
-int getIpAsString(struct addrinfo *res, long type, char *dest)
-{
-    char ip[INET6_ADDRSTRLEN];
-    if (type == 2) {
-        struct sockaddr_in6* saddr;
-        void *addr;
-        saddr = (struct socketaddr_in6 *)res->ai_addr;
-        addr = &(saddr->sin6_addr);
-        inet_ntop(res->ai_family, addr, ip, sizeof ip);
-    } else {
-        struct sockaddr_in* saddr;
-        void *addr;
-        saddr = (struct socketaddr_in *)res->ai_addr;
-        addr = &(saddr->sin_addr);
-        inet_ntop(res->ai_family, addr, ip, sizeof ip);
-    }
-    strcpy(dest, ip);
-    return 0;
-}
-
 PHP_METHOD(NetV6, getHostByNameL)
 {
+    const char * hostname = NULL;
+    struct addrinfo *result;
+    struct addrinfo *res;
+    int hostname_len = 0;
+    int type;
 
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &hostname, &hostname_len, &type) == FAILURE) {
+        return;
+    }
+
+    int error;
+
+    error = getIpByName(hostname, type, &result);
+    if (error != 0) {
+        char message[255];
+        mapError(error, &message);
+        throwException(message, error, php_netv6_exception_class_entry);
+        return;
+    }
+    
+    array_init(return_value);
+
+    for (res = result; res != NULL; res = res->ai_next)
+    {
+        char ip[INET6_ADDRSTRLEN];
+        getIpAsString(res, type, &ip);
+        add_next_index_string(return_value, ip, 1);
+    }
+    freeaddrinfo(result);
+    return;
 }
 
 zend_function_entry php_netv6_methods[] = {
