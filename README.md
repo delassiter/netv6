@@ -16,3 +16,14 @@ To Do
  * Allow IPV6-lookup with fallback to IPV4 (as new $protocol)
  * refactor
  * tests
+
+Installation
+===
+
+Requirements: php5, php5-dev, *nix os, pear & pecl
+
+1. phpize .
+2. ./configure
+3. make
+4. make install
+5. Add extension to php
