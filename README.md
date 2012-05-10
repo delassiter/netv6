@@ -9,7 +9,7 @@ For $protocol you may use
  * NetV6::IPV4
  * NetV6::IPV6
 
-On error during lookup an NetV6Exception will be thrown with Message and Code (according to getaddrinfo)
+On error during lookup a NetV6Exception will be thrown with Message and Code (according to getaddrinfo)
 
 To Do
 ===
