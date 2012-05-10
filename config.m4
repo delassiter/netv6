@@ -4,5 +4,5 @@ PHP_ARG_ENABLE(netv6,
 
 if test $PHP_NETV6 != "no"; then
   PHP_SUBST(NETV6_SHARED_LIBADD)
-  PHP_NEW_EXTENSION(netv6, netv6.c, $ext_shared)
+  PHP_NEW_EXTENSION(netv6, netv6.c netv6_exception.c, $ext_shared)
 fi

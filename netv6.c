@@ -1,24 +1,8 @@
-/*
-  +----------------------------------------------------------------------+
-  | PHP Version 5                                                        |
-  +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
-  +----------------------------------------------------------------------+
-  | This source file is subject to version 3.01 of the PHP license,      |
-  | that is bundled with this package in the file LICENSE, and is        |
-  | available through the world-wide-web at the following url:           |
-  | http://www.php.net/license/3_01.txt                                  |
-  | If you did not receive a copy of the PHP license and are unable to   |
-  | obtain it through the world-wide-web, please send a note to          |
-  | license@php.net so we can mail you a copy immediately.               |
-  +----------------------------------------------------------------------+
-  | Author: Dennis Lassiter dennis@lassiter.de Copyright (c) 2012        |
-  +----------------------------------------------------------------------+
-*/
-
 #include "php_netv6.h"
+#include "netv6_exception.h"
 
 zend_class_entry *php_netv6_sc_entry;
+zend_class_entry *php_netv6_exception_class_entry;
 
 PHP_METHOD(NetV6, getHostByName)
 {
@@ -32,18 +16,20 @@ PHP_METHOD(NetV6, getHostByName)
     }
 
     int error;
-
+  
     error = getIpByName(hostname, type, &result);
-    if (error) {
-        php_printf("Hello");
+    if (error != 0) {
+        char message[255];
+        mapError(error, &message);
+        throwException(message, error, php_netv6_exception_class_entry);
+        return;
     }
 
-    // Error handling
     char ip[INET6_ADDRSTRLEN];
     getIpAsString(result, type, &ip);
     freeaddrinfo(result);
 
-    RETVAL_STRING(ip, 1);
+    RETVAL_STRING(ip, 1); 
     return;
 }
 
@@ -59,12 +45,9 @@ int getIpByName(const char *hostname, long type, struct addrinfo **res)
     }
     hints.ai_socktype = SOCK_STREAM;
 
-    error = getaddrinfo(hostname, NULL, NULL, res);
-    if (error) {
-        return 1;
-    }
+    error = getaddrinfo(hostname, NULL, &hints, res);
 
-    return 0;
+    return error;
 }
 
 int getIpAsString(struct addrinfo *res, long type, char *dest)
@@ -98,6 +81,10 @@ zend_function_entry php_netv6_methods[] = {
     {NULL, NULL, NULL}
 };
 
+const zend_function_entry php_netv6_exception_methods[] = {
+    {NULL, NULL, NULL}
+};
+
 void php_netv6_register_constants(zend_class_entry *ce)
 {
     zval *constval;
@@ -115,10 +102,13 @@ void php_netv6_register_constants(zend_class_entry *ce)
 
 PHP_MINIT_FUNCTION(netv6)
 {
-    zend_class_entry ce;
+    zend_class_entry ce, cex;
     INIT_CLASS_ENTRY(ce, "NetV6", php_netv6_methods);
     php_netv6_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
     php_netv6_register_constants(php_netv6_sc_entry);
+
+    INIT_CLASS_ENTRY(cex, "NetV6Exception", php_netv6_exception_methods);
+    php_netv6_exception_class_entry = zend_register_internal_class_ex(&cex, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
 
     return SUCCESS;
 }
