@@ -1,5 +1,6 @@
 netv6
 =====
+A PHP extension that provides access to getaddrinfo.
 
 This extensions offers a Class by the name of "NetV6" with two static methods
  * getHostByName($hostname, $protocol)
