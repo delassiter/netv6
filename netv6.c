@@ -35,14 +35,30 @@ PHP_METHOD(NetV6, getHostByName)
     }
 
     int error;
-  
-    error = getIpByName(hostname, type, &result);
-    if (error != 0) {
-        char message[255];
-        mapError(error, &message);
-        throwException(message, error, php_netv6_exception_class_entry);
-        return;
+
+    int retry = 1;
+
+    // If type == DUAL = get IPv6 and fallback to IPv4
+    if (type == 4) {
+        type = 2;
+        error = getIpByName(hostname, 2, &result);
+        if (error != 0) {
+             type = 1;
+        } else {
+             retry = 0;
+        }
     }
+
+    if (retry == 1) {
+        error = getIpByName(hostname, type, &result);
+        if (error != 0) {
+            char message[255];
+            mapError(error, &message);
+            throwException(message, error, php_netv6_exception_class_entry);
+            return;
+        }
+    }
+
 
     char ip[INET6_ADDRSTRLEN];
     getIpAsString(result, type, &ip);
@@ -66,6 +82,24 @@ PHP_METHOD(NetV6, getHostByNameL)
 
     int error;
 
+    array_init(return_value);
+
+    // If type == DUAL = get IPv6 and IPv4
+    if (type == 4) {
+        type = 2;
+        error = getIpByName(hostname, 2, &result);
+
+        for (res = result; res != NULL; res = res->ai_next)
+        {
+            char ip[INET6_ADDRSTRLEN];
+            getIpAsString(res, type, &ip);
+            add_next_index_string(return_value, ip, 1);
+        }
+        freeaddrinfo(result);
+
+        type = 1;
+    }
+
     error = getIpByName(hostname, type, &result);
     if (error != 0) {
         char message[255];
@@ -74,7 +108,6 @@ PHP_METHOD(NetV6, getHostByNameL)
         return;
     }
     
-    array_init(return_value);
 
     for (res = result; res != NULL; res = res->ai_next)
     {
@@ -109,6 +142,12 @@ void php_netv6_register_constants(zend_class_entry *ce)
     INIT_PZVAL(constval);
     ZVAL_LONG(constval, 2);
     zend_hash_add(&ce->constants_table, "IPV6", sizeof("IPV6"), (void*)&constval, sizeof(zval*), NULL);
+
+    constval = pemalloc(sizeof(zval), 1);
+    INIT_PZVAL(constval);
+    ZVAL_LONG(constval, 4);
+    zend_hash_add(&ce->constants_table, "DUAL", sizeof("DUAL"), (void*)&constval, sizeof(zval*), NULL);
+
 }
 
 PHP_MINIT_FUNCTION(netv6)
