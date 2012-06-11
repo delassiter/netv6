@@ -16,7 +16,6 @@
   +----------------------------------------------------------------------+
 */
 
-#include "netv6_exception.h"
 #include "php_netv6.h"
 #include "zend_exceptions.h"
 
