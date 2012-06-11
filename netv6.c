@@ -81,13 +81,34 @@ PHP_METHOD(NetV6, getHostByNameL)
     }
 
     int error;
-
+    int foundIpV6 = 0;
     array_init(return_value);
 
     // If type == DUAL = get IPv6 and IPv4
     if (type == 4) {
         type = 2;
-        error = getIpByName(hostname, 2, &result);
+        error = getIpByName(hostname, type, &result2);
+
+        if (error == 0) {
+            for (res2 = result2; res2 != NULL; res2 = res2->ai_next)
+            {
+                char ip[INET6_ADDRSTRLEN];
+                getIpAsString(res2, type, &ip);
+                add_next_index_string(return_value, ip, 1);
+                foundIpV6++;
+            }
+            freeaddrinfo(result2);
+        }
+        type = 1;
+    }
+
+    error = getIpByName(hostname, type, &result);
+    if (error != 0 && foundIpV6 == 0) {
+        char message[255];
+        mapError(error, &message);
+        throwException(message, error, php_netv6_exception_class_entry);
+        return;
+    } else if (error == 0) {
 
         for (res = result; res != NULL; res = res->ai_next)
         {
@@ -96,27 +117,9 @@ PHP_METHOD(NetV6, getHostByNameL)
             add_next_index_string(return_value, ip, 1);
         }
         freeaddrinfo(result);
-
-        type = 1;
     }
-
-    error = getIpByName(hostname, type, &result);
-    if (error != 0) {
-        char message[255];
-        mapError(error, &message);
-        throwException(message, error, php_netv6_exception_class_entry);
-        return;
-    }
-    
-
-    for (res = result; res != NULL; res = res->ai_next)
-    {
-        char ip[INET6_ADDRSTRLEN];
-        getIpAsString(res, type, &ip);
-        add_next_index_string(return_value, ip, 1);
-    }
-    freeaddrinfo(result);
     return;
+
 }
 
 zend_function_entry php_netv6_methods[] = {
