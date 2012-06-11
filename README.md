@@ -17,7 +17,7 @@ For getHostByNameL NetV6::DUAL will get both IPv6 and IPv4
 
 To Do
 ===
- * refactor (!!!)
+ * refactor (!!!) So many duplicates...
  * tests
 
 Installation
